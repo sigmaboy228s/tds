@@ -21,7 +21,7 @@ local script_content = [[
             game:GetService("ReplicatedStorage"):WaitForChild("RemoteFunction"):InvokeServer("Multiplayer", "v2:start", { count = 1, mode = "hardcore"})
         elseif IsInGame() then
             task.wait(10)
-            local TDS = loadstring(game:HttpGet("https://raw.githubusercontent.com/DuxiiT/tds-autostrat/refs/heads/main/main.lua"))() -- Library
+            local TDS = loadstring(game:HttpGet("https://raw.githubusercontent.com/sigmaboy228s/tds/refs/heads/main/main.lua"))() -- Library
             -- GLOBALS:
             _G.AutoStrat = true
             _G.Webhook = "YOUR-WEBHOOK-URL-HERE"
