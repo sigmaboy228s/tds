@@ -24,11 +24,11 @@ local script_content = [[
         elseif IsInGame() then
             task.wait(10)
             _G.AutoStrat = true
-            _G.Webhook = "" -- SET YOUR WEBHOOK URL HERE, IF YOU DO MAKE SURE _G.SendWebhook is set to true aswell
-            _G.SendWebhook = false
+            _G.Webhook = "https://discord.com/api/webhooks/1366677583399489566/cmBaGjER8c3tcZVR-BbPSC4XvpmBCNcjGi5oFvu0nHrg-K7qbpUjSfsqhEkzfh2ChU8v" -- SET YOUR WEBHOOK URL HERE, IF YOU DO MAKE SURE _G.SendWebhook is set to true aswell
+            _G.SendWebhook = true
             _G.BackToLobby =  true
             _G.AutoSkip = false
-            _G.AutoSnowballs = false
+            _G.AutoSnowballs = true
 
             local TDS = loadstring(game:HttpGet("https://raw.githubusercontent.com/sigmaboy228s/tds/refs/heads/main/main.lua"))()
 
