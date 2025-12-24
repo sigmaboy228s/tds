@@ -1,5 +1,5 @@
 -- // Loader
-local script_url = "https://raw.githubusercontent.com/DuxiiT/tds-autostrat/refs/heads/main/main.lua"
+local script_url = "https://raw.githubusercontent.com/sigmaboy228s/tds/refs/heads/main/main.lua"
 local success, TDS = pcall(function()
     return loadstring(game:HttpGet(script_url))()
 end)
