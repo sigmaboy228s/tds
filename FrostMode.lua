@@ -28,7 +28,7 @@ local script_content = [[
             _G.SendWebhook = true
             _G.BackToLobby =  true
             _G.AutoSkip = false
-            _G.AutoSnowballs = true
+            _G.AutoSnowballs = false
 
             local TDS = loadstring(game:HttpGet("https://raw.githubusercontent.com/sigmaboy228s/tds/refs/heads/main/main.lua"))()
 
