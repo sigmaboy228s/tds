@@ -30,7 +30,7 @@ local script_content = [[
             _G.AutoSkip = false
             _G.AutoSnowballs = false
 
-            local TDS = loadstring(game:HttpGet("https://raw.githubusercontent.com/sigmaboy228s/tds/refs/heads/main/main.lua"))()
+            local TDS = loadstring(game:HttpGet("https://raw.githubusercontent.com/sigmaboy228s/tds/refs/heads/main/Library.lua"))()
 
             -- Example Strat
             while _G.AutoStrat do
