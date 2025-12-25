@@ -8,8 +8,12 @@ TDS:Place(name, x, y, z)    -> Places tower, returns index.
 TDS:Upgrade(idx, path)      -> Upgrades tower at index (path 1 or 2).
 TDS:Sell(idx)               -> Sells tower at index.
 TDS:SetTarget(idx, mode)    -> Targeting: "First", "Strong", "Last", "Random".
-TDS:Ready()                 -> Initializes match, skips first wave, logs webhook.
 TDS:UseTimeScale(val)       -> Sets speed: 0.5, 1, 1.5, or 2.
+TDS:GameInfo(map, modifiers)       -> Selects the desired Map and Modifiers
+Modifiers:
+HiddenEnemies = true, Glass = true, ExplodingEnemies = true, Limitation = true, Committed = true, HealthyEnemies = true, SpeedyEnemies = true, Quarantine = true, Fog = true, FlyingEnemies = true, Broke = true, Jailed = true, Inflation = true
+
+Usage: TDS:GameInfo("Simplicity", {HiddenEnemies = true, ExplodingEnemies = true})
 
 --------------------------------------------------------------------------------
 [ TDS:SetOption ]
@@ -77,9 +81,7 @@ _G.SendWebhook   = true  -- Toggles match result logging
 --------------------------------------------------------------------------------
 [ ADVANCED: INFINITE LOOP (Autoexec) ]
 --------------------------------------------------------------------------------
-For 24/7 AFK, place the loop script (Option A for PC, Option B for Mobile) 
-into your executor's 'Autoexec' folder. Ensure you replace the 'loadstring' 
-URL with your own GitHub Raw URL.
+For 24/7 AFK, place the script into your executor's 'Autoexec' folder.
 
 --------------------------------------------------------------------------------
 [ ADVANCED: POSITIONING (dist / pointToEnd) ]
@@ -101,17 +103,6 @@ HOW TO FIND VALUES FOR OTHER MAPS:
 NOTE: If you set the value to 999, the unit/airstrike will often target the 
 very end of the path or remain "stuck" at the exit until it times out.
 
-FULL EXAMPLE SCRIPT
-1. TDS:Place("Scout", -11.45, 2.30, -1.41) -- Index 1
-2. TDS:Upgrade(1) -- Upgrades the Scout to Level 1
-3. TDS:SetTarget(1, "Strong") -- Focuses the strongest enemies
-4. TDS:Place("Commander", -8.34, 2.30, -1.37) -- Index 2
-5. TDS:SetOption(2, "Track", "Purple") -- If tower was DJ, sets Track to Purple
-6. TDS:Ability(2, "Call Of Arms", {}, true) -- Loops Commander's buff
-7. TDS:Place("Military Base", 5.5, 2.0, 10.0) -- Index 3
-8. TDS:Ability(3, "Airstrike", {["pathName"] = 1, ["pointToEnd"] = 156}, false)
-9. TDS:Sell(1) -- Sells the Scout at index 1 to free up space
-
 TROUBLESHOOTING & TIPS 
 • ERROR "No HTTP Function": Your executor does not support 'request'. Use a
 supported executor like Wave, Xeno, Delta, or Arceus X.
@@ -123,5 +114,5 @@ you sell Index 1, Index 2 remains 2; it does not shift down.
 freezes at the end of a match, check if your Webhook URL is valid.
 
 ================================================================================
-                    COPYRIGHT 2025 DUXII - PERSONAL USE ONLY
+                    COPYRIGHT 2025  - PERSONAL USE ONLY
 ================================================================================
