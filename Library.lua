@@ -36,6 +36,7 @@ local player_gui = local_player:WaitForChild("PlayerGui")
 local back_to_lobby_running = false
 local auto_snowballs_running = false
 local auto_skip_running = false
+local anti_lag_running = false
 
 -- // icon item ids ill add more soon arghh
 local ItemNames = {
@@ -288,18 +289,36 @@ local function run_vote_skip()
 end
 
 local function match_ready_up()
-    local function wait_for(parent, child_name)
-        local obj
-        repeat
-            obj = parent:FindFirstChild(child_name)
-            if not obj then task.wait(0.3) end
-        until obj
-        return obj
+    local player_gui = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+    
+    local ui_overrides = player_gui:WaitForChild("ReactOverridesVote", 30)
+    local main_frame = ui_overrides and ui_overrides:WaitForChild("Frame", 30)
+    
+    if not main_frame then
+        return
     end
 
-    local ui_overrides = wait_for(player_gui, "ReactOverridesVote")
-    local main_frame = wait_for(ui_overrides, "Frame")
-    local vote_node = wait_for(main_frame, "votes")
+    local vote_ready = nil
+
+    while not vote_ready do
+        local vote_node = main_frame:FindFirstChild("votes")
+        
+        if vote_node then
+            local container = vote_node:FindFirstChild("container")
+            if container then
+                local ready = container:FindFirstChild("ready")
+                if ready then
+                    vote_ready = ready
+                end
+            end
+        end
+        
+        if not vote_ready then
+            task.wait(0.5) 
+        end
+    end
+
+    repeat task.wait(0.1) until vote_ready.Visible == true
 
     run_vote_skip()
     log_match_start()
@@ -323,7 +342,6 @@ local function select_map_override(map_id)
     cast_map_vote(map_id, Vector3.new(12.59, 10.64, 52.01))
     task.wait(1)
     lobby_ready_up()
-    task.wait(15)
     match_ready_up()
 end
 
@@ -557,37 +575,67 @@ function TDS:Mode(difficulty)
     if game_state ~= "LOBBY" then 
         return false 
     end
+
+    local lobby_hud = player_gui:WaitForChild("ReactLobbyHud", 30)
+    local frame = lobby_hud and lobby_hud:WaitForChild("Frame", 30)
+    local match_making = frame and frame:WaitForChild("matchmaking", 30)
+
+    if match_making then
     local remote = game:GetService("ReplicatedStorage"):WaitForChild("RemoteFunction")
-    local ok, res = pcall(function()
-        if difficulty == "Hardcore" then
-            return remote:InvokeServer("Multiplayer", "v2:start", {
-                mode = "hardcore",
-                count = 1
-            })
-        else
-            return remote:InvokeServer("Multiplayer", "v2:start", {
-                difficulty = difficulty,
-                mode = "survival",
-                count = 1
-            })
-        end
-    end)
-    
-    return ok and check_res_ok(res)
+    local success = false
+    local res
+        repeat
+            local ok, result = pcall(function()
+                if difficulty == "Hardcore" then
+                    return remote:InvokeServer("Multiplayer", "v2:start", {
+                        mode = "hardcore",
+                        count = 1
+                    })
+                elseif difficulty == "Pizza Party" then
+                    return remote:InvokeServer("Multiplayer", "v2:start", {
+                        mode = "halloween",
+                        count = 1
+                    })
+                else
+                    return remote:InvokeServer("Multiplayer", "v2:start", {
+                        difficulty = difficulty,
+                        mode = "survival",
+                        count = 1
+                    })
+                end
+            end)
+
+            if ok and check_res_ok(result) then
+                success = true
+                res = result
+            else
+                task.wait(0.5) 
+            end
+        until success
+    end
+
+    return true
 end
 
 function TDS:Loadout(...)
     if game_state ~= "LOBBY" then 
         return false 
     end
-    local towers = {...}
-    local remote = game:GetService("ReplicatedStorage"):WaitForChild("RemoteFunction")
-    for _, tower_name in ipairs(towers) do
-        if tower_name and tower_name ~= "" then
-            pcall(function()
-                remote:InvokeServer("Inventory", "Equip", "tower", tower_name)
-            end)
-            task.wait(0.5)
+
+    local lobby_hud = player_gui:WaitForChild("ReactLobbyHud", 30)
+    local frame = lobby_hud and lobby_hud:WaitForChild("Frame", 30)
+    local match_making = frame and frame:WaitForChild("matchmaking", 30)
+
+    if match_making then
+        local towers = {...}
+        local remote = game:GetService("ReplicatedStorage"):WaitForChild("RemoteFunction")
+        for _, tower_name in ipairs(towers) do
+            if tower_name and tower_name ~= "" then
+                pcall(function()
+                    remote:InvokeServer("Inventory", "Equip", "tower", tower_name)
+                end)
+                task.wait(0.5)
+            end
         end
     end
 end
@@ -597,20 +645,23 @@ function TDS:TeleportToLobby()
     send_to_lobby()
 end
 
-function TDS:VoteSkip()
+function TDS:VoteSkip(req_wave)
+    if req_wave then
+        repeat task.wait(0.5) until get_current_wave() >= req_wave
+    end
     run_vote_skip()
 end
 
 function TDS:GameInfo(name, list)
     list = list or {}
+    if game_state ~= "GAME" then return false end
 
-    if game_state ~= "GAME" then 
-        return false 
+    local vote_gui = player_gui:WaitForChild("ReactGameIntermission", 30)
+
+    if vote_gui and vote_gui.Enabled and vote_gui:WaitForChild("Frame", 5) then
+        cast_modifier_vote(list)
+        select_map_override(name)
     end
-    task.wait(15)
-
-    cast_modifier_vote(list)
-    select_map_override(name)
 end
 
 function TDS:UnlockTimeScale()
@@ -627,6 +678,10 @@ end
 
 function TDS:Ready()
     match_ready_up()
+end
+
+function TDS:GetWave()
+    return get_current_wave()
 end
 
 function TDS:RestartGame()
@@ -667,7 +722,11 @@ function TDS:Upgrade(idx, p_id)
     end
 end
 
-function TDS:SetTarget(idx, target_type)
+function TDS:SetTarget(idx, target_type, req_wave)
+    if req_wave then
+        repeat task.wait(0.5) until get_current_wave() >= req_wave
+    end
+
     local t = self.placed_towers[idx]
     if not t then return end
 
@@ -679,7 +738,10 @@ function TDS:SetTarget(idx, target_type)
     end)
 end
 
-function TDS:Sell(idx)
+function TDS:Sell(idx, req_wave)
+    if req_wave then
+        repeat task.wait(0.5) until get_current_wave() >= req_wave
+    end
     local t = self.placed_towers[idx]
     if t and do_sell_tower(t) then
         table.remove(self.placed_towers, idx)
@@ -748,10 +810,10 @@ function TDS:AutoChain(...)
     end
 end
 
-function TDS:SetOption(idx, name, val, wave)
+function TDS:SetOption(idx, name, val, req_wave)
     local t = self.placed_towers[idx]
     if t then
-        return do_set_option(t, name, val, wave)
+        return do_set_option(t, name, val, req_wave)
     end
     return false
 end
@@ -766,7 +828,7 @@ local function get_root()
     return char and char:FindFirstChild("HumanoidRootPart")
 end
 
-local function startAutoSnowballs()
+local function start_auto_snowballs()
     if auto_snowballs_running or not _G.AutoSnowballs then return end
     auto_snowballs_running = true
 
@@ -798,7 +860,7 @@ local function startAutoSnowballs()
     end)
 end
 
-local function startAutoSkip()
+local function start_auto_skip()
     if auto_skip_running or not _G.AutoSkip then return end
     auto_skip_running = true
 
@@ -821,7 +883,7 @@ local function startAutoSkip()
     end)
 end
 
-local function StartBackToLobbyLoop()
+local function start_back_to_lobby()
     if back_to_lobby_running then return end
     back_to_lobby_running = true
 
@@ -836,8 +898,46 @@ local function StartBackToLobbyLoop()
     end)
 end
 
-StartBackToLobbyLoop()
-startAutoSkip()
-startAutoSnowballs()
+local function start_anit_lag()
+    if anti_lag_running then return end
+    anti_lag_running = true
+
+    task.spawn(function()
+        while _G.AntiLag do
+            local towers_folder = workspace:FindFirstChild("Towers")
+            local client_units = workspace:FindFirstChild("ClientUnits")
+            local enemies = workspace:FindFirstChild("NPCs")
+
+            if towers_folder then
+                for _, tower in ipairs(towers_folder:GetChildren()) do
+                    local anims = tower:FindFirstChild("Animations")
+                    local weapon = tower:FindFirstChild("Weapon")
+                    local projectiles = tower:FindFirstChild("Projectiles")
+                    
+                    if anims then anims:Destroy() end
+                    if projectiles then projectiles:Destroy() end
+                    if weapon then weapon:Destroy() end
+                end
+            end
+            if client_units then
+                for _, unit in ipairs(client_units:GetChildren()) do
+                    unit:Destroy()
+                end
+            end
+            if enemies then
+                for _, npc in ipairs(enemies:GetChildren()) do
+                    npc:Destroy()
+                end
+            end
+            task.wait(0.5)
+        end
+        anti_lag_running = false
+    end)
+end
+
+start_back_to_lobby()
+start_auto_skip()
+start_auto_snowballs()
+start_anit_lag()
 
 return TDS
