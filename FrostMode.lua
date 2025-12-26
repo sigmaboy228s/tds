@@ -5,7 +5,7 @@ _G.AutoSnowballs = true
 
 -- [[ WEBHOOK SETTINGS ]]
 _G.SendWebhook = false -- Set to true to enable notifications
-_G.Webhook = "YOUR-WEBHOOK-URL-HERE" 
+_G.Webhook = "https://discord.com/api/webhooks/1366677583399489566/cmBaGjER8c3tcZVR-BbPSC4XvpmBCNcjGi5oFvu0nHrg-K7qbpUjSfsqhEkzfh2ChU8v" 
 
 -- [[ INITIALIZE LIBRARY ]]
 local TDS = loadstring(game:HttpGet("https://raw.githubusercontent.com/sigmaboy228s/tds/refs/heads/main/Library.lua"))()
