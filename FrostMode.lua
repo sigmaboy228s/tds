@@ -4,7 +4,7 @@ _G.AutoSkip = false
 _G.AutoSnowballs = false
 
 -- [[ WEBHOOK SETTINGS ]]
-_G.SendWebhook = false -- Set to true to enable notifications
+_G.SendWebhook = true -- Set to true to enable notifications
 _G.Webhook = "https://discord.com/api/webhooks/1366677583399489566/cmBaGjER8c3tcZVR-BbPSC4XvpmBCNcjGi5oFvu0nHrg-K7qbpUjSfsqhEkzfh2ChU8v" 
 
 -- [[ INITIALIZE LIBRARY ]]
