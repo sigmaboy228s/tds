@@ -1,6 +1,7 @@
 -- [[ CONFIGURATION ]]
 _G.AutoStrat = true
 _G.AutoSkip = false
+_G.AntiLag = true
 _G.AutoSnowballs = false
 
 -- [[ WEBHOOK SETTINGS ]]
